@@ -24,9 +24,9 @@ async fn main() -> Result<()> {
     }
 
     // Load persisted config, then override with --theme flag if provided
-    let cfg           = config::load();
-    let theme_name    = cli.theme.as_deref().unwrap_or(&cfg.theme).to_string();
-    let theme         = Theme::from_str(&theme_name);
+    let cfg = config::load();
+    let theme_name = cli.theme.as_deref().unwrap_or(&cfg.theme).to_string();
+    let theme = Theme::from_str(&theme_name);
 
     let client = GithubClient::new(cli.token.clone())?;
 
@@ -80,8 +80,8 @@ fn cmd_config(action: &ConfigAction) -> Result<()> {
             if !valid.contains(&name.as_str()) {
                 anyhow::bail!("Unknown theme '{}'. Available: {}", name, valid.join(", "));
             }
-            let mut cfg    = config::load();
-            cfg.theme      = name.clone();
+            let mut cfg = config::load();
+            cfg.theme = name.clone();
             config::save(&cfg)?;
             println!("Theme set to '{}'", name);
         }
@@ -126,9 +126,9 @@ async fn fetch_user_data(
     )
     .context("Failed to fetch GitHub data")?;
 
-    let data     = (user.clone(), repos.clone(), events.clone());
-    let entry    = github::cache::CacheEntry::new(data);
-    let _        = github::cache::save(&cache_key, &entry);
+    let data = (user.clone(), repos.clone(), events.clone());
+    let entry = github::cache::CacheEntry::new(data);
+    let _ = github::cache::save(&cache_key, &entry);
 
     Ok((user, repos, events))
 }
@@ -170,8 +170,8 @@ async fn cmd_profile(
 }
 
 async fn cmd_compare(client: &GithubClient, user1: &str, user2: &str, theme: &Theme) -> Result<()> {
-    let u1    = parse_username(user1);
-    let u2    = parse_username(user2);
+    let u1 = parse_username(user1);
+    let u2 = parse_username(user2);
 
     println!("  Fetching {} and {} ...", u1, u2);
 
@@ -185,8 +185,8 @@ async fn cmd_compare(client: &GithubClient, user1: &str, user2: &str, theme: &Th
 }
 
 async fn cmd_top(client: &GithubClient, country: &str, theme: &Theme) -> Result<()> {
-    let query     = format!("location:{} followers:>100", country);
-    let result    = client.search_users(&query).await?;
+    let query = format!("location:{} followers:>100", country);
+    let result = client.search_users(&query).await?;
 
     println!();
     println!(
@@ -197,8 +197,8 @@ async fn cmd_top(client: &GithubClient, country: &str, theme: &Theme) -> Result<
     println!();
 
     for (i, user) in result.items.iter().take(10).enumerate() {
-        let name             = user.name.as_deref().unwrap_or("");
-        let followers_str    = user
+        let name = user.name.as_deref().unwrap_or("");
+        let followers_str = user
             .followers
             .map(|f| format!("{} followers", utils::format_compact(f)))
             .unwrap_or_default();
@@ -228,8 +228,8 @@ async fn cmd_search(client: &GithubClient, query: &str, theme: &Theme) -> Result
     println!();
 
     for user in result.items.iter().take(10) {
-        let name             = user.name.as_deref().unwrap_or("").to_string();
-        let followers_str    = user
+        let name = user.name.as_deref().unwrap_or("").to_string();
+        let followers_str = user
             .followers
             .map(|f| {
                 format!(
@@ -255,8 +255,8 @@ async fn cmd_random(client: &GithubClient, cli: &Cli, theme: &Theme) -> Result<(
     let mut rng = rand::thread_rng();
 
     // Pick a random page (GitHub caps at 1000 results: 100 pages × 10 per page)
-    let page: u32    = rng.gen_range(1..=100);
-    let result       = client.search_users_paged("repos:>3", page).await?;
+    let page: u32 = rng.gen_range(1..=100);
+    let result = client.search_users_paged("repos:>3", page).await?;
 
     if result.items.is_empty() {
         anyhow::bail!("Could not find a random user");
@@ -268,12 +268,12 @@ async fn cmd_random(client: &GithubClient, cli: &Cli, theme: &Theme) -> Result<(
 }
 
 async fn cmd_trending(client: &GithubClient, theme: &Theme) -> Result<()> {
-    let today        = chrono::Utc::now();
-    let month_ago    = today - chrono::Duration::days(30);
-    let date_str     = month_ago.format("%Y-%m-%d").to_string();
+    let today = chrono::Utc::now();
+    let month_ago = today - chrono::Duration::days(30);
+    let date_str = month_ago.format("%Y-%m-%d").to_string();
 
-    let query     = format!("followers:>50+created:>{}", date_str);
-    let result    = client.search_users(&query).await?;
+    let query = format!("followers:>50+created:>{}", date_str);
+    let result = client.search_users(&query).await?;
 
     println!();
     println!("  {}", theme.header("Trending Developers"));
@@ -281,8 +281,8 @@ async fn cmd_trending(client: &GithubClient, theme: &Theme) -> Result<()> {
     println!();
 
     for (i, user) in result.items.iter().take(10).enumerate() {
-        let name             = user.name.as_deref().unwrap_or("").to_string();
-        let followers_str    = user
+        let name = user.name.as_deref().unwrap_or("").to_string();
+        let followers_str = user
             .followers
             .map(|f| format!("{} followers", utils::format_compact(f)))
             .unwrap_or_default();
@@ -313,16 +313,16 @@ async fn cmd_repo(client: &GithubClient, repo_str: &str, theme: &Theme) -> Resul
         client.get_latest_release(owner, repo_name)
     );
 
-    let raw_langs                        = lang_result.unwrap_or_default();
-    let total_bytes: u64                 = raw_langs.values().sum();
-    let mut langs: Vec<(String, f64)>    = raw_langs
+    let raw_langs = lang_result.unwrap_or_default();
+    let total_bytes: u64 = raw_langs.values().sum();
+    let mut langs: Vec<(String, f64)> = raw_langs
         .into_iter()
         .map(|(l, b)| (l, b as f64 / total_bytes.max(1) as f64 * 100.0))
         .collect();
     langs.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
 
-    let contributors    = contributors_result.unwrap_or_default();
-    let release         = release_result.ok();
+    let contributors = contributors_result.unwrap_or_default();
+    let release = release_result.ok();
 
     display::repo::print_repo(&repo, &langs, &contributors, release.as_ref(), theme);
     Ok(())

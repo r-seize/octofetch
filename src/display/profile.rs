@@ -94,8 +94,8 @@ pub fn print_profile(
         println!("  {}", theme.header("Top Languages"));
         let bar_total = 20usize;
         for (lang, pct) in langs.iter().take(6) {
-            let filled    = (*pct as usize * bar_total / 100).max(if *pct > 0.0 { 1 } else { 0 });
-            let bar       = render_bar(filled, bar_total, theme.fill(), theme.empty());
+            let filled = (*pct as usize * bar_total / 100).max(if *pct > 0.0 { 1 } else { 0 });
+            let bar = render_bar(filled, bar_total, theme.fill(), theme.empty());
             println!(
                 "    {:<16} {} {:>3.0}%",
                 theme.label(lang),
@@ -168,8 +168,8 @@ fn row(theme: &Theme, label: &str, value: &str) {
 fn print_heatmap(events: &[Event], theme: &Theme) {
     use chrono::Datelike;
 
-    let today                                      = chrono::Utc::now().date_naive();
-    let mut activity: HashMap<NaiveDate, usize>    = HashMap::new();
+    let today = chrono::Utc::now().date_naive();
+    let mut activity: HashMap<NaiveDate, usize> = HashMap::new();
     for event in events {
         let date = event.created_at.date_naive();
         *activity.entry(date).or_insert(0) += 1;
@@ -177,10 +177,10 @@ fn print_heatmap(events: &[Event], theme: &Theme) {
 
     let mut grid: [[usize; 4]; 7] = [[0; 4]; 7];
     for days_ago in 0i64..28 {
-        let date               = today - chrono::Duration::days(days_ago);
-        let dow                = date.weekday().num_days_from_monday() as usize;
-        let week               = (days_ago / 7) as usize;
-        grid[dow][3 - week]    = *activity.get(&date).unwrap_or(&0);
+        let date = today - chrono::Duration::days(days_ago);
+        let dow = date.weekday().num_days_from_monday() as usize;
+        let week = (days_ago / 7) as usize;
+        grid[dow][3 - week] = *activity.get(&date).unwrap_or(&0);
     }
 
     let day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -201,8 +201,8 @@ fn print_heatmap(events: &[Event], theme: &Theme) {
 }
 
 pub fn print_json(user: &User, repos: &[Repo], langs: &[(String, f64)]) {
-    let total_stars: u64    = repos.iter().map(|r| r.stargazers_count).sum();
-    let total_forks: u64    = repos.iter().map(|r| r.forks_count).sum();
+    let total_stars: u64 = repos.iter().map(|r| r.stargazers_count).sum();
+    let total_forks: u64 = repos.iter().map(|r| r.forks_count).sum();
 
     let langs_json: Vec<serde_json::Value> = langs
         .iter()

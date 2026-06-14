@@ -44,8 +44,8 @@ fn sanitize(s: &str) -> String {
 }
 
 pub fn load<T: for<'de> Deserialize<'de>>(key: &str) -> Option<CacheEntry<T>> {
-    let path       = cache_path(key)?;
-    let content    = std::fs::read_to_string(&path).ok()?;
+    let path = cache_path(key)?;
+    let content = std::fs::read_to_string(&path).ok()?;
     serde_json::from_str(&content).ok()
 }
 

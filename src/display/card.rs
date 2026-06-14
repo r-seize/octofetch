@@ -5,14 +5,14 @@ use crate::utils::format_compact;
 pub fn print_card(user: &User, repos: &[Repo], theme: &Theme) {
     let total_stars: u64 = repos.iter().map(|r| r.stargazers_count).sum();
 
-    let name    = user.name.as_deref().unwrap_or(&user.login);
-    let bio     = user.bio.as_deref().unwrap_or("").to_string();
-    let loc     = user.location.as_deref().unwrap_or("").to_string();
+    let name = user.name.as_deref().unwrap_or(&user.login);
+    let bio = user.bio.as_deref().unwrap_or("").to_string();
+    let loc = user.location.as_deref().unwrap_or("").to_string();
 
-    let width       = 36usize;
-    let border_h    = "─".repeat(width - 2);
-    let top         = format!("┌{}┐", border_h);
-    let bot         = format!("└{}┘", border_h);
+    let width = 36usize;
+    let border_h = "─".repeat(width - 2);
+    let top = format!("┌{}┐", border_h);
+    let bot = format!("└{}┘", border_h);
 
     println!();
     println!("  {}", theme.label(&top));
@@ -66,8 +66,8 @@ pub fn print_card(user: &User, repos: &[Repo], theme: &Theme) {
 fn card_row(theme: &Theme, content: &str, width: usize) {
     let inner = width - 2;
     // Strip ANSI codes for length calculation by using visible char count
-    let visible_len    = content.chars().count();
-    let padding        = inner.saturating_sub(1 + visible_len + 1);
+    let visible_len = content.chars().count();
+    let padding = inner.saturating_sub(1 + visible_len + 1);
     println!(
         "  {}",
         theme.label(&format!(

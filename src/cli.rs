@@ -2,8 +2,8 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(
-    name     = "octofetch",
-    about    = "Neofetch for GitHub profiles - written in Rust",
+    name = "octofetch",
+    about = "Neofetch for GitHub profiles - written in Rust",
     version,
     long_about = "Your GitHub profile, in one command."
 )]

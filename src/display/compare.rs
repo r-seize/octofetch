@@ -3,8 +3,8 @@ use crate::theme::Theme;
 use crate::utils::{format_compact, render_bar};
 
 pub fn print_compare(user1: &User, repos1: &[Repo], user2: &User, repos2: &[Repo], theme: &Theme) {
-    let stars1: u64    = repos1.iter().map(|r| r.stargazers_count).sum();
-    let stars2: u64    = repos2.iter().map(|r| r.stargazers_count).sum();
+    let stars1: u64 = repos1.iter().map(|r| r.stargazers_count).sum();
+    let stars2: u64 = repos2.iter().map(|r| r.stargazers_count).sum();
 
     println!();
     println!("  {}", theme.header("Profile Comparison"));
@@ -76,10 +76,10 @@ pub fn print_compare(user1: &User, repos1: &[Repo], user2: &User, repos2: &[Repo
 }
 
 fn compare_bar(theme: &Theme, label: &str, name1: &str, val1: u64, name2: &str, val2: u64) {
-    let max          = val1.max(val2).max(1);
-    let bar_total    = 20usize;
-    let filled1      = (val1 as usize * bar_total / max as usize).max(if val1 > 0 { 1 } else { 0 });
-    let filled2      = (val2 as usize * bar_total / max as usize).max(if val2 > 0 { 1 } else { 0 });
+    let max = val1.max(val2).max(1);
+    let bar_total = 20usize;
+    let filled1 = (val1 as usize * bar_total / max as usize).max(if val1 > 0 { 1 } else { 0 });
+    let filled2 = (val2 as usize * bar_total / max as usize).max(if val2 > 0 { 1 } else { 0 });
 
     println!("  {}", theme.header(label));
     println!(

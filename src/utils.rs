@@ -18,8 +18,8 @@ pub fn parse_username(input: &str) -> String {
 }
 
 pub fn format_number(n: u64) -> String {
-    let s             = n.to_string();
-    let mut result    = String::new();
+    let s = n.to_string();
+    let mut result = String::new();
     for (i, c) in s.chars().rev().enumerate() {
         if i > 0 && i % 3 == 0 {
             result.push(',');
@@ -50,8 +50,8 @@ pub fn format_compact(n: u64) -> String {
 }
 
 pub fn time_ago(dt: &DateTime<Utc>) -> String {
-    let now    = Utc::now();
-    let dur    = now.signed_duration_since(*dt);
+    let now = Utc::now();
+    let dur = now.signed_duration_since(*dt);
 
     if dur.num_days() > 365 {
         let years = dur.num_days() / 365;

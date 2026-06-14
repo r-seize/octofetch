@@ -29,8 +29,8 @@ impl GithubClient {
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28");
 
-        let resp      = req.send().await.context("HTTP request failed")?;
-        let status    = resp.status();
+        let resp = req.send().await.context("HTTP request failed")?;
+        let status = resp.status();
 
         if !status.is_success() {
             let body = resp.text().await.unwrap_or_default();
@@ -53,12 +53,12 @@ impl GithubClient {
     }
 
     pub async fn get_repos(&self, username: &str) -> Result<Vec<Repo>> {
-        let mut all     = Vec::new();
-        let mut page    = 1u32;
+        let mut all = Vec::new();
+        let mut page = 1u32;
         loop {
-            let url                 = format!("{BASE}/users/{username}/repos?per_page=100&page={page}&sort=pushed");
-            let repos: Vec<Repo>    = self.get(&url).await?;
-            let len                 = repos.len();
+            let url = format!("{BASE}/users/{username}/repos?per_page=100&page={page}&sort=pushed");
+            let repos: Vec<Repo> = self.get(&url).await?;
+            let len = repos.len();
             all.extend(repos);
             if len < 100 {
                 break;
