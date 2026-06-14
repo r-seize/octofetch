@@ -106,7 +106,7 @@ pub fn print_profile(
     }
 
     let mut starred: Vec<&Repo> = repos.iter().filter(|r| !r.fork).collect();
-    starred.sort_by(|a, b| b.stargazers_count.cmp(&a.stargazers_count));
+    starred.sort_by_key(|b| std::cmp::Reverse(b.stargazers_count));
     if !starred.is_empty() {
         println!();
         println!("  {}", theme.header("Most Starred Repositories"));
@@ -211,7 +211,7 @@ pub fn print_json(user: &User, repos: &[Repo], langs: &[(String, f64)]) {
         .collect();
 
     let mut sorted = repos.to_vec();
-    sorted.sort_by(|a, b| b.stargazers_count.cmp(&a.stargazers_count));
+    sorted.sort_by_key(|b| std::cmp::Reverse(b.stargazers_count));
     let top_repos: Vec<serde_json::Value> = sorted
         .iter()
         .filter(|r| !r.fork)

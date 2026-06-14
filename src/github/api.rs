@@ -118,7 +118,7 @@ impl GithubClient {
     ) -> Result<Vec<(String, f64)>> {
         if detailed && self.token.is_some() {
             let mut non_forks: Vec<&Repo> = repos.iter().filter(|r| !r.fork).collect();
-            non_forks.sort_by(|a, b| b.stargazers_count.cmp(&a.stargazers_count));
+            non_forks.sort_by_key(|b| std::cmp::Reverse(b.stargazers_count));
             // Cap at 20 repos - enough for accuracy, parallel so still fast
             let top = &non_forks[..non_forks.len().min(20)];
 
