@@ -1,0 +1,82 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run every Monday at 08:00 UTC to catch new CVEs
+    - cron: "0 8 * * 1"
+
+jobs:
+  audit:
+    name: cargo audit - CVE check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Run audit
+        run: cargo audit
+
+  deny:
+    name: cargo deny - licenses & advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+
+      - name: Run deny
+        run: cargo deny check
+
+  clippy:
+    name: cargo clippy - static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+  geiger:
+    name: cargo geiger - unsafe code scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cargo-geiger
+        run: cargo install cargo-geiger --locked
+
+      - name: Run geiger
+        run: cargo geiger --all-features 2>&1 || true
+        # Non-blocking: reports unsafe usage but does not fail the build
+
+  codeql:
+    name: CodeQL - SAST
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: actions
+          # Rust is not yet natively supported by CodeQL,
+          # but this covers the GitHub Actions workflows themselves.
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

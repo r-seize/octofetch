@@ -1,0 +1,41 @@
+[package]
+name           = "octofetch"
+version        = "0.1.0"
+edition        = "2021"
+description    = "Neofetch for GitHub profiles - written in Rust"
+license        = "GPL-3.0"
+authors        = ["r-seize"]
+repository     = "https://github.com/r-seize/octofetch"
+homepage       = "https://github.com/r-seize/octofetch"
+keywords       = ["github", "cli", "neofetch", "terminal", "profile"]
+categories     = ["command-line-utilities"]
+
+[package.metadata.deb]
+maintainer      = "octofetch contributors"
+copyright       = "2026"
+license-file    = ["LICENSE", "0"]
+depends         = "$auto"
+section         = "utils"
+priority        = "optional"
+assets = [
+    ["target/release/octofetch", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/octofetch/README.md", "644"],
+]
+
+[[bin]]
+name    = "octofetch"
+path    = "src/main.rs"
+
+[dependencies]
+clap          = { version = "4", features = ["derive", "env"] }
+reqwest       = { version = "0.12", features = ["json"] }
+serde         = { version = "1", features = ["derive"] }
+serde_json    = "1"
+tokio         = { version = "1", features = ["full"] }
+colored       = "2"
+chrono        = { version = "0.4", features = ["serde"] }
+dirs          = "5"
+anyhow        = "1"
+rand          = "0.8"
+figlet-rs     = "0.1"
+futures       = "0.3"

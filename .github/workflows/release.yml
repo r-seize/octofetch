@@ -1,0 +1,155 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build - ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: octofetch
+            archive: octofetch-linux-x86_64.tar.gz
+
+          # Linux ARM64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact: octofetch
+            archive: octofetch-linux-arm64.tar.gz
+
+          # macOS Intel
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            artifact: octofetch
+            archive: octofetch-macos-intel.tar.gz
+
+          # macOS Apple Silicon
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            artifact: octofetch
+            archive: octofetch-macos-arm64.tar.gz
+
+          # Windows x86_64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            artifact: octofetch.exe
+            archive: octofetch-windows-x86_64.zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools (ARM64 Linux)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu libssl-dev pkg-config
+
+      - name: Install OpenSSL (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+
+      - name: Package (Linux / macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar czf ../../../${{ matrix.archive }} ${{ matrix.artifact }}
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd target/${{ matrix.target }}/release
+          Compress-Archive -Path ${{ matrix.artifact }} -DestinationPath ../../../${{ matrix.archive }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: ${{ matrix.archive }}
+
+  deb:
+    name: Build .deb (Debian/Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: sudo apt-get install -y pkg-config libssl-dev
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Build .deb
+        run: cargo deb
+
+      - name: Upload .deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: octofetch.deb
+          path: target/debian/*.deb
+
+  release:
+    name: Create GitHub Release
+    needs: [build, deb]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            **Linux/macOS** - télécharge et installe :
+            ```bash
+            # Linux x86_64
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/octofetch-linux-x86_64.tar.gz | tar xz
+            sudo mv octofetch /usr/local/bin/
+
+            # macOS Apple Silicon
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/octofetch-macos-arm64.tar.gz | tar xz
+            sudo mv octofetch /usr/local/bin/
+            ```
+
+            **Debian/Ubuntu** :
+            ```bash
+            curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/octofetch_${{ github.ref_name }}_amd64.deb
+            sudo dpkg -i octofetch_*.deb
+            ```
+
+            **Via Cargo** :
+            ```bash
+            cargo install octofetch
+            ```
