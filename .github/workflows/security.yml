@@ -9,6 +9,9 @@ on:
     # Run every Monday at 08:00 UTC to catch new CVEs
     - cron: "0 8 * * 1"
 
+permissions:
+  contents: read
+
 jobs:
   audit:
     name: cargo audit - CVE check
