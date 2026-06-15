@@ -75,11 +75,11 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: actions
           # Rust is not yet natively supported by CodeQL,
           # but this covers the GitHub Actions workflows themselves.
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
