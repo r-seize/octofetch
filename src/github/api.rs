@@ -1,10 +1,26 @@
 use anyhow::{Context, Result};
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use reqwest::Client;
 use std::collections::HashMap;
 
-use crate::github::models::{Contributor, Event, Release, Repo, SearchResult, SearchUser, User};
+use crate::github::models::{
+    Contributor, Event, RateLimitResponse, Release, Repo, SearchResult, SearchUser, User,
+};
 
 const BASE: &str = "https://api.github.com";
+
+/// Percent-encode a single path segment (username, repo name, ...), so that
+/// characters like `/`, `?` or `#` can't redirect the request to a different
+/// endpoint or inject extra query parameters.
+fn path_segment(s: &str) -> String {
+    const SEGMENT: &AsciiSet = &NON_ALPHANUMERIC.remove(b'-').remove(b'_').remove(b'.');
+    utf8_percent_encode(s, SEGMENT).to_string()
+}
+
+/// Percent-encode a full query string value (e.g. a search `q=` value).
+fn query_value(s: &str) -> String {
+    utf8_percent_encode(s, NON_ALPHANUMERIC).to_string()
+}
 
 pub struct GithubClient {
     client: Client,
@@ -14,7 +30,7 @@ pub struct GithubClient {
 impl GithubClient {
     pub fn new(token: Option<String>) -> Result<Self> {
         let client = Client::builder()
-            .user_agent("octofetch/0.1.0")
+            .user_agent(concat!("octofetch/", env!("CARGO_PKG_VERSION")))
             .build()
             .context("Failed to build HTTP client")?;
         Ok(Self { client, token })
@@ -49,10 +65,12 @@ impl GithubClient {
     }
 
     pub async fn get_user(&self, username: &str) -> Result<User> {
+        let username = path_segment(username);
         self.get(&format!("{BASE}/users/{username}")).await
     }
 
     pub async fn get_repos(&self, username: &str) -> Result<Vec<Repo>> {
+        let username = path_segment(username);
         let mut all = Vec::new();
         let mut page = 1u32;
         loop {
@@ -69,11 +87,13 @@ impl GithubClient {
     }
 
     pub async fn get_events(&self, username: &str) -> Result<Vec<Event>> {
+        let username = path_segment(username);
         let url = format!("{BASE}/users/{username}/events?per_page=100");
         self.get(&url).await
     }
 
     pub async fn get_repo(&self, owner: &str, repo: &str) -> Result<Repo> {
+        let (owner, repo) = (path_segment(owner), path_segment(repo));
         self.get(&format!("{BASE}/repos/{owner}/{repo}")).await
     }
 
@@ -82,22 +102,26 @@ impl GithubClient {
         owner: &str,
         repo: &str,
     ) -> Result<HashMap<String, u64>> {
+        let (owner, repo) = (path_segment(owner), path_segment(repo));
         self.get(&format!("{BASE}/repos/{owner}/{repo}/languages"))
             .await
     }
 
     pub async fn get_contributors(&self, owner: &str, repo: &str) -> Result<Vec<Contributor>> {
+        let (owner, repo) = (path_segment(owner), path_segment(repo));
         let url = format!("{BASE}/repos/{owner}/{repo}/contributors?per_page=10");
         self.get(&url).await
     }
 
     pub async fn get_latest_release(&self, owner: &str, repo: &str) -> Result<Release> {
+        let (owner, repo) = (path_segment(owner), path_segment(repo));
         self.get(&format!("{BASE}/repos/{owner}/{repo}/releases/latest"))
             .await
     }
 
     pub async fn search_users(&self, query: &str) -> Result<SearchResult<SearchUser>> {
-        let url = format!("{BASE}/search/users?q={query}&sort=followers&per_page=10");
+        let q = query_value(query);
+        let url = format!("{BASE}/search/users?q={q}&sort=followers&per_page=10");
         self.get(&url).await
     }
 
@@ -106,8 +130,13 @@ impl GithubClient {
         query: &str,
         page: u32,
     ) -> Result<SearchResult<SearchUser>> {
-        let url = format!("{BASE}/search/users?q={query}&sort=followers&per_page=10&page={page}");
+        let q = query_value(query);
+        let url = format!("{BASE}/search/users?q={q}&sort=followers&per_page=10&page={page}");
         self.get(&url).await
+    }
+
+    pub async fn get_rate_limit(&self) -> Result<RateLimitResponse> {
+        self.get(&format!("{BASE}/rate_limit")).await
     }
 
     pub async fn get_language_stats(

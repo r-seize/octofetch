@@ -23,7 +23,10 @@ A CLI tool inspired by Neofetch that displays GitHub profiles, repositories and 
   - [Trending developers](#trending-developers)
   - [Random profile](#random-profile)
   - [Config](#config)
+  - [Rate limits](#rate-limits)
+  - [Shell completions](#shell-completions)
 - [Options](#options)
+- [Changelog](#changelog)
 - [Themes](#themes)
 - [Output formats](#output-formats)
 - [GitHub Token](#github-token)
@@ -207,6 +210,29 @@ octofetch config show
 octofetch config reset
 ```
 
+### Rate limits
+
+Check your current GitHub API rate limit status (useful to see if you need a token).
+
+```bash
+octofetch limits
+```
+
+### Shell completions
+
+Generate a completion script for your shell (bash, zsh, fish, elvish, powershell).
+
+```bash
+# Bash
+octofetch completions bash > /etc/bash_completion.d/octofetch
+
+# Zsh
+octofetch completions zsh > "${fpath[1]}/_octofetch"
+
+# Fish
+octofetch completions fish > ~/.config/fish/completions/octofetch.fish
+```
+
 ## Options
 
 | Flag | Description |
@@ -362,6 +388,11 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 5. Open a Pull Request
 
 Please make sure your code compiles and passes `cargo clippy` before submitting.
+
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a history of changes.
 
 
 ## License

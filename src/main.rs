@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
-use clap::Parser;
+use clap::{CommandFactory, Parser};
+use clap_complete::generate;
 
 mod cli;
 mod config;
@@ -18,9 +19,18 @@ use utils::parse_username;
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    // Handle config command before anything else (no API client needed)
+    // Handle commands that need no API client first
     if let Some(Commands::Config { action }) = &cli.command {
         return cmd_config(action);
+    }
+    if let Some(Commands::Completions { shell }) = &cli.command {
+        generate(
+            *shell,
+            &mut Cli::command(),
+            "octofetch",
+            &mut std::io::stdout(),
+        );
+        return Ok(());
     }
 
     // Load persisted config, then override with --theme flag if provided
@@ -49,7 +59,10 @@ async fn main() -> Result<()> {
         Some(Commands::Repo { repo }) => {
             cmd_repo(&client, repo, &theme).await?;
         }
-        Some(Commands::Config { .. }) => unreachable!(),
+        Some(Commands::Limits) => {
+            cmd_limits(&client, &theme).await?;
+        }
+        Some(Commands::Config { .. }) | Some(Commands::Completions { .. }) => unreachable!(),
         None => {
             if let Some(ref target) = cli.target {
                 let username = parse_username(target);
@@ -292,6 +305,37 @@ async fn cmd_trending(client: &GithubClient, theme: &Theme) -> Result<()> {
             theme.value(&user.login),
             theme.dim(&name),
             theme.accent(&followers_str)
+        );
+    }
+    println!();
+    Ok(())
+}
+
+async fn cmd_limits(client: &GithubClient, theme: &Theme) -> Result<()> {
+    let limits = client.get_rate_limit().await?;
+
+    println!();
+    println!("  {}", theme.header("GitHub API Rate Limits"));
+    println!("  {}", theme.separator(&"─".repeat(50)));
+    println!();
+
+    for (label, rl) in [
+        ("Core", &limits.resources.core),
+        ("Search", &limits.resources.search),
+    ] {
+        let reset = chrono::DateTime::from_timestamp(rl.reset, 0)
+            .map(|dt| {
+                let mins = (dt - chrono::Utc::now()).num_minutes().max(0);
+                format!("in {}m", mins)
+            })
+            .unwrap_or_default();
+        println!(
+            "  {:<8} {} / {}  ({} used, resets {})",
+            theme.label(label),
+            theme.value(&rl.remaining.to_string()),
+            theme.dim(&rl.limit.to_string()),
+            theme.accent(&rl.used.to_string()),
+            theme.dim(&reset)
         );
     }
     println!();

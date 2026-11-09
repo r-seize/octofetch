@@ -1,6 +1,6 @@
 [package]
 name           = "octofetch"
-version        = "0.1.1"
+version        = "0.1.2"
 edition        = "2021"
 description    = "Neofetch for GitHub profiles - written in Rust"
 license        = "GPL-3.0-only"
@@ -28,6 +28,7 @@ path    = "src/main.rs"
 
 [dependencies]
 clap          = { version = "4", features = ["derive", "env"] }
+clap_complete = "4"
 reqwest       = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "http2"] }
 serde         = { version = "1", features = ["derive"] }
 serde_json    = "1"
@@ -39,3 +40,4 @@ anyhow        = "1"
 rand          = "0.8"
 figlet-rs     = "0.1"
 futures       = "0.3"
+percent-encoding = "2"

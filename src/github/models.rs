@@ -93,6 +93,26 @@ pub struct Release {
     pub published_at: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RateLimit {
+    pub limit: u64,
+    pub used: u64,
+    pub remaining: u64,
+    pub reset: i64,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RateLimitResources {
+    pub core: RateLimit,
+    pub search: RateLimit,
+    pub graphql: Option<RateLimit>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RateLimitResponse {
+    pub resources: RateLimitResources,
+}
+
 impl Event {
     pub fn description(&self) -> String {
         match self.event_type.as_str() {
